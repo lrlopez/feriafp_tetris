@@ -1,4 +1,4 @@
-// Paso 3
+// Paso 4a
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -66,6 +66,12 @@ const uint8_t piezas[7][4][4][2] = {
     }
 };
 
+/// Estado del juego
+int pieza;      // Pieza actual
+int rotacion;   // Rotación actual
+int posFila;    // Fila actual
+int posColumna; // Columna actual
+
 void nuevaPartida();
 
 void setup() {
@@ -119,8 +125,16 @@ void dibujaFondo() {
     u8g2.drawFrame(0, 3, 64, 124);
 }
 
+void piezaAleatoria() {
+  pieza = random(7);
+  rotacion = random(4);
+  posFila = 0;
+  posColumna = 3;
+}
+
 void nuevaPartida() {
-    limpiaTablero();
+  limpiaTablero();
+  piezaAleatoria();
 }
 
 void loop() {
@@ -135,7 +149,7 @@ void loop() {
     u8g2.drawStr(0, 4, "Puntos: 0 (0)");
 
     // Dibujar pieza prueba
-    dibujaPieza(0, 0, 2, 1);
+    dibujaPieza(posColumna, posFila, pieza, rotacion);
 
     // Dibujar pantalla
     u8g2.sendBuffer();
