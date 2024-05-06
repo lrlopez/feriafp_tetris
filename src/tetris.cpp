@@ -1,4 +1,4 @@
-// Paso 6a
+// Paso 6b
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -154,6 +154,10 @@ int pulsadoRotar() {
     return digitalRead(ROTAR_PIN) == LOW;
 }
 
+int pulsadoSoltar() {
+    return digitalRead(SOLTAR_PIN) == LOW;
+}
+
 void dibujaFondo() {
     // Dibujar marco
     u8g2.drawFrame(0, 3, 64, 124);
@@ -224,8 +228,15 @@ void loop() {
         posFila = ultFila;
         posColumna = ultColumna;
         rotacion = ultRotacion;
+    } else {
+      if (pulsadoSoltar()) {
+          do {
+              posFila++;
+          } while (puedeColocarsePieza(posColumna, posFila, pieza, rotacion));
+          posFila--;
+      }
     }
-    
+
     if (actual > tiempo + tiempoCaida) {
         posFila++;
         tiempo = actual;
