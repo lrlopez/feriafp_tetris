@@ -1,4 +1,4 @@
-// Paso 6b
+// Paso 6c
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -71,6 +71,9 @@ int pieza;      // Pieza actual
 int rotacion;   // Rotación actual
 int posFila;    // Fila actual
 int posColumna; // Columna actual
+
+int puntos;     // Puntos obtenidos
+int numLineas;     // Líneas completadas
 
 unsigned long tiempo; // Último avance de línea
 int tiempoCaida;      // Tiempo de avance de línea
@@ -183,13 +186,14 @@ void piezaAleatoria() {
   posColumna = 3;
 
   tiempo = 0;
-  tiempoCaida = 1000;
 }
 
 void nuevaPartida() {
   limpiaTablero();
   piezaAleatoria();
-  pozo[4][18] = 1;
+  numLineas = 0;
+  puntos = 0;
+  tiempoCaida = 1000;
 }
 
 void colocarPieza(int columna, int fila, int pieza, int rotacion) {
@@ -197,6 +201,44 @@ void colocarPieza(int columna, int fila, int pieza, int rotacion) {
         pozo[columna + piezas[pieza][rotacion][i][0]][fila + piezas[pieza][rotacion][i][1]] = 1;
     }
 }
+
+void comprobarLineas() {
+    int lineas = 0;
+    int puntosSegunLineas[] = { 0, 100, 300, 500, 800 };
+
+    for (int fila = 19; fila >= 0; fila--) {
+        int hayLinea = 1;
+        for (int columna = 0; columna < 10; columna++) {
+            if (pozo[columna][fila] != 1) {
+                hayLinea = 0;
+                break;
+            }
+        }
+        if (hayLinea) {
+            lineas++;
+            // Bajar las líneas del pozo que haya por encima
+            for (int filaInicial = fila - 1; filaInicial >= 0; filaInicial--) {
+                for (int columna = 0; columna < 10; columna++) {
+                    pozo[columna][filaInicial + 1] = pozo[columna][filaInicial];
+                }
+            }
+            for (int columna = 0; columna < 10; columna++) {
+                pozo[columna][0] = 0;
+            }
+            fila++;
+        }
+    }
+
+    if (lineas > 0) {
+        // Sumar puntuación
+        puntos += puntosSegunLineas[lineas];
+        numLineas += lineas;
+
+        // Acelerar caída según las líneas conseguidas
+        tiempoCaida -= lineas * 50;
+    }
+}
+
 void loop() {
     unsigned long actual = millis();
 
@@ -211,7 +253,9 @@ void loop() {
     
     // Dibujar puntuación
     u8g2.setFont(u8g2_font_u8glib_4_hf);
-    u8g2.drawStr(0, 4, "Puntos: 0 (0)");
+    char texto[40];
+    sprintf(texto, "Puntos: %d (%d)", puntos, numLineas);
+    u8g2.drawStr(0, 4, texto);
 
     int ultFila = posFila;
     int ultColumna = posColumna;
@@ -223,6 +267,7 @@ void loop() {
 
     if (pulsadoMoverIzquierda()) posColumna--;
     if (pulsadoMoverDerecha()) posColumna++;
+    if (pulsadoBajar()) posFila++;
 
     if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
         posFila = ultFila;
@@ -243,6 +288,7 @@ void loop() {
         // No puede colocarse al avanzar: fijar en el pozo
         if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
             colocarPieza(posColumna, posFila - 1, pieza, rotacion);
+            comprobarLineas();
             piezaAleatoria();
         }
     }
