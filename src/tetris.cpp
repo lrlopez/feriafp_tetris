@@ -1,4 +1,4 @@
-// Paso 4a
+// Paso 4B
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -120,6 +120,22 @@ void limpiaTablero() {
     }
 }
 
+int pulsadoMoverIzquierda() {
+    return digitalRead(IZDA_PIN) == LOW;
+}
+
+int pulsadoMoverDerecha() {
+    return digitalRead(DCHA_PIN) == LOW;
+}
+
+int pulsadoBajar() {
+    return digitalRead(ABAJO_PIN) == LOW;
+}
+
+int pulsadoSubir() {
+    return digitalRead(ROTAR_PIN) == LOW;
+}
+
 void dibujaFondo() {
     // Dibujar marco
     u8g2.drawFrame(0, 3, 64, 124);
@@ -147,6 +163,11 @@ void loop() {
     // Dibujar puntuación
     u8g2.setFont(u8g2_font_u8glib_4_hf);
     u8g2.drawStr(0, 4, "Puntos: 0 (0)");
+
+    if (pulsadoBajar()) posFila++;
+    if (pulsadoSubir()) posFila--;
+    if (pulsadoMoverIzquierda()) posColumna--;
+    if (pulsadoMoverDerecha()) posColumna++;
 
     // Dibujar pieza prueba
     dibujaPieza(posColumna, posFila, pieza, rotacion);
