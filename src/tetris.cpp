@@ -1,4 +1,4 @@
-// Paso 4c
+// Paso 4d
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -156,6 +156,19 @@ void dibujaFondo() {
     u8g2.drawFrame(0, 3, 64, 124);
 }
 
+void dibujaPozo() {
+    int fila, columna;
+    for (columna = 0; columna < 10; columna++) {
+        for (fila = 0; fila < 20; fila++) {
+            if (pozo[columna][fila]) {
+                int x = 2 + columna * 6;
+                int y = 5 + fila * 6;
+                dibujaBloque(x, y, 2);
+            }
+        }
+    }
+}
+
 void piezaAleatoria() {
   pieza = random(7);
   rotacion = random(4);
@@ -166,6 +179,7 @@ void piezaAleatoria() {
 void nuevaPartida() {
   limpiaTablero();
   piezaAleatoria();
+  pozo[4][18] = 1;
 }
 
 void loop() {
@@ -174,6 +188,9 @@ void loop() {
 
     // Dibujar marco de fondo
     dibujaFondo();
+
+    // Dibujar pozo
+    dibujaPozo();
     
     // Dibujar puntuación
     u8g2.setFont(u8g2_font_u8glib_4_hf);
