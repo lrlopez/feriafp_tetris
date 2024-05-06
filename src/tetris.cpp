@@ -1,4 +1,4 @@
-// Paso 5
+// Paso 6a
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -188,6 +188,11 @@ void nuevaPartida() {
   pozo[4][18] = 1;
 }
 
+void colocarPieza(int columna, int fila, int pieza, int rotacion) {
+    for (int i = 0; i < 4; i++) {
+        pozo[columna + piezas[pieza][rotacion][i][0]][fila + piezas[pieza][rotacion][i][1]] = 1;
+    }
+}
 void loop() {
     unsigned long actual = millis();
 
@@ -215,15 +220,20 @@ void loop() {
     if (pulsadoMoverIzquierda()) posColumna--;
     if (pulsadoMoverDerecha()) posColumna++;
 
-    if (actual > tiempo + tiempoCaida) {
-        posFila++;
-        tiempo = actual;
-    }
-
     if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
         posFila = ultFila;
         posColumna = ultColumna;
         rotacion = ultRotacion;
+    }
+    
+    if (actual > tiempo + tiempoCaida) {
+        posFila++;
+        tiempo = actual;
+        // No puede colocarse al avanzar: fijar en el pozo
+        if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
+            colocarPieza(posColumna, posFila - 1, pieza, rotacion);
+            piezaAleatoria();
+        }
     }
 
     // Dibujar pieza prueba
