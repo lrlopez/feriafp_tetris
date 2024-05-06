@@ -1,4 +1,4 @@
-// Paso 2
+// Paso 3
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -13,6 +13,58 @@
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R3, U8X8_PIN_NONE);
 
 uint8_t pozo[10][20] = {};
+
+const uint8_t piezas[7][4][4][2] = {
+    {
+            // I
+            {{1,0},{1,1},{1,2},{1,3}},
+            {{0,1},{1,1},{2,1},{3,1}},
+            {{1,0},{1,1},{1,2},{1,3}},
+            {{0,1},{1,1},{2,1},{3,1}}
+    },
+    {
+            // J
+            {{0,2},{1,0},{1,1},{1,2}},
+            {{0,1},{1,1},{2,1},{2,2}},
+            {{1,0},{1,1},{1,2},{2,0}},
+            {{0,0},{0,1},{1,1},{2,1}}
+    },
+    {
+            // L
+            {{1,0},{1,1},{1,2},{2,2}},
+            {{0,1},{1,1},{2,0},{2,1}},
+            {{0,0},{1,0},{1,1},{1,2}},
+            {{0,1},{0,2},{1,1},{2,1}}
+    },
+    {
+            // O
+            {{0,0},{0,1},{1,0},{1,1}},
+            {{0,0},{0,1},{1,0},{1,1}},
+            {{0,0},{0,1},{1,0},{1,1}},
+            {{0,0},{0,1},{1,0},{1,1}}
+    },
+    {
+            // S
+            {{0,1},{1,0},{1,1},{2,0}},
+            {{0,0},{0,1},{1,1},{1,2}},
+            {{0,2},{1,1},{1,2},{2,1}},
+            {{1,0},{1,1},{2,1},{2,2}}
+    },
+    {
+            // T
+            {{0,1},{1,1},{1,2},{2,1}},
+            {{1,0},{1,1},{1,2},{2,1}},
+            {{0,1},{1,0},{1,1},{2,1}},
+            {{0,1},{1,0},{1,1},{1,2}}
+    },
+    {
+            // Z
+            {{0,0},{1,0},{1,1},{2,1}},
+            {{0,1},{0,2},{1,0},{1,1}},
+            {{0,1},{1,1},{1,2},{2,2}},
+            {{1,1},{1,2},{2,0},{2,1}}
+    }
+};
 
 void nuevaPartida();
 
@@ -34,24 +86,24 @@ void setup() {
     nuevaPartida();
 }
 
-void dibujaCaja(int x, int y, int tipo) {
-  switch (tipo) {
-    case 0:
-      u8g2.drawFrame(x, y, 6, 6);
-      u8g2.drawBox(x + 2, y + 2, 2, 2);
-      break;
-    case 1:
-      u8g2.drawFrame(x, y, 6, 6);
-      for (int i = 1; i <= 4; i++) {
-        u8g2.drawPixel(x + 1 + i % 2, y + i);
-        u8g2.drawPixel(x + 3 + i % 2, y + i);
-      }
-      break;
-    default:
-      u8g2.setDrawColor(0);
-      u8g2.drawBox(x, y, 6, 6);
-      u8g2.setDrawColor(1);
-  }
+void dibujaBloque(int x, int y, int tipo) {
+    u8g2.drawFrame(x, y, 6, 6);
+    if (tipo == 0) {
+        u8g2.drawBox(x + 2, y + 2, 2, 2);
+    } else {
+        for (int i = 1; i <= 4; i++) {
+            u8g2.drawPixel(x + 1 + i % 2, y + i);
+            u8g2.drawPixel(x + 3 + i % 2, y + i);
+        }
+    }
+}
+
+void dibujaPieza(int columna, int fila, int pieza, int rotacion) {
+    int x = 2 + columna * 6;
+    int y = 5 + fila * 6;
+    for (int i = 0; i < 4; i++) {
+        dibujaBloque(x + piezas[pieza][rotacion][i][0] * 6, y + piezas[pieza][rotacion][i][1] * 6, 0);
+    }
 }
 
 void limpiaTablero() {
@@ -71,7 +123,6 @@ void nuevaPartida() {
     limpiaTablero();
 }
 
-
 void loop() {
     // Vaciar pantalla
     u8g2.clearBuffer();
@@ -83,15 +134,8 @@ void loop() {
     u8g2.setFont(u8g2_font_u8glib_4_hf);
     u8g2.drawStr(0, 4, "Puntos: 0 (0)");
 
-    // Dibujar tablero de prueba
-    int fila, columna;
-    for (fila = 0; fila < 20; fila++) {
-        for (columna = 0; columna < 10; columna++) {
-            int x = 2 + columna * 6;
-            int y = 5 + fila * 6;
-            dibujaCaja(x, y, (fila + columna) % 3);
-        }
-    }
+    // Dibujar pieza prueba
+    dibujaPieza(0, 0, 2, 1);
 
     // Dibujar pantalla
     u8g2.sendBuffer();
