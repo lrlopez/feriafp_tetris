@@ -1,4 +1,4 @@
-// Paso 4B
+// Paso 4c
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -120,6 +120,21 @@ void limpiaTablero() {
     }
 }
 
+int puedeColocarseBloque(int columna, int fila) {
+  if (columna < 0 || columna > 9) return 0;
+  if (fila < 0 || fila > 19) return 0;
+  if (pozo[columna][fila] == 1) return 0;
+  return 1;
+}
+
+int puedeColocarsePieza(int columna, int fila, int pieza, int rotacion) {
+  return
+    puedeColocarseBloque(columna + piezas[pieza][rotacion][0][0], fila + piezas[pieza][rotacion][0][1]) &&
+    puedeColocarseBloque(columna + piezas[pieza][rotacion][1][0], fila + piezas[pieza][rotacion][1][1]) &&
+    puedeColocarseBloque(columna + piezas[pieza][rotacion][2][0], fila + piezas[pieza][rotacion][2][1]) &&
+    puedeColocarseBloque(columna + piezas[pieza][rotacion][3][0], fila + piezas[pieza][rotacion][3][1]);
+}
+
 int pulsadoMoverIzquierda() {
     return digitalRead(IZDA_PIN) == LOW;
 }
@@ -164,10 +179,18 @@ void loop() {
     u8g2.setFont(u8g2_font_u8glib_4_hf);
     u8g2.drawStr(0, 4, "Puntos: 0 (0)");
 
+    int ultFila = posFila;
+    int ultColumna = posColumna;
+
     if (pulsadoBajar()) posFila++;
     if (pulsadoSubir()) posFila--;
     if (pulsadoMoverIzquierda()) posColumna--;
     if (pulsadoMoverDerecha()) posColumna++;
+
+    if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
+        posFila = ultFila;
+        posColumna = ultColumna;
+    }
 
     // Dibujar pieza prueba
     dibujaPieza(posColumna, posFila, pieza, rotacion);
