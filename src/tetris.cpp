@@ -1,4 +1,4 @@
-// Paso 4d
+// Paso 5
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -71,6 +71,9 @@ int pieza;      // Pieza actual
 int rotacion;   // Rotación actual
 int posFila;    // Fila actual
 int posColumna; // Columna actual
+
+unsigned long tiempo; // Último avance de línea
+int tiempoCaida;      // Tiempo de avance de línea
 
 void nuevaPartida();
 
@@ -147,7 +150,7 @@ int pulsadoBajar() {
     return digitalRead(ABAJO_PIN) == LOW;
 }
 
-int pulsadoSubir() {
+int pulsadoRotar() {
     return digitalRead(ROTAR_PIN) == LOW;
 }
 
@@ -174,6 +177,9 @@ void piezaAleatoria() {
   rotacion = random(4);
   posFila = 0;
   posColumna = 3;
+
+  tiempo = 0;
+  tiempoCaida = 1000;
 }
 
 void nuevaPartida() {
@@ -183,6 +189,8 @@ void nuevaPartida() {
 }
 
 void loop() {
+    unsigned long actual = millis();
+
     // Vaciar pantalla
     u8g2.clearBuffer();
 
@@ -198,15 +206,24 @@ void loop() {
 
     int ultFila = posFila;
     int ultColumna = posColumna;
+    int ultRotacion = rotacion;
 
-    if (pulsadoBajar()) posFila++;
-    if (pulsadoSubir()) posFila--;
+    if (pulsadoRotar()) {
+        rotacion = (rotacion + 1) % 4;
+    }
+
     if (pulsadoMoverIzquierda()) posColumna--;
     if (pulsadoMoverDerecha()) posColumna++;
+
+    if (actual > tiempo + tiempoCaida) {
+        posFila++;
+        tiempo = actual;
+    }
 
     if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
         posFila = ultFila;
         posColumna = ultColumna;
+        rotacion = ultRotacion;
     }
 
     // Dibujar pieza prueba
@@ -215,5 +232,5 @@ void loop() {
     // Dibujar pantalla
     u8g2.sendBuffer();
 
-    delay(50);
+    delay(5);
 }
