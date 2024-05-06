@@ -1,4 +1,4 @@
-// Paso 6c
+// Paso 7
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -239,6 +239,19 @@ void comprobarLineas() {
     }
 }
 
+void finDeJuego() {
+    u8g2.setFontMode(1);
+    u8g2.setFont(u8g2_font_helvR08_tr);
+    u8g2.setDrawColor(0);
+    u8g2.drawBox(0, 54, 64, 26);
+    u8g2.setDrawColor(1);
+    u8g2.drawButtonUTF8(32, 70, U8G2_BTN_SHADOW1|U8G2_BTN_HCENTER|U8G2_BTN_BW2, 0, 2, 2, "Fin de juego");
+    u8g2.sendBuffer();
+    u8g2.setFontMode(0);
+    delay(5000);
+    nuevaPartida();
+}
+
 void loop() {
     unsigned long actual = millis();
 
@@ -290,6 +303,9 @@ void loop() {
             colocarPieza(posColumna, posFila - 1, pieza, rotacion);
             comprobarLineas();
             piezaAleatoria();
+            if (!puedeColocarsePieza(posColumna, posFila, pieza, rotacion)) {
+                finDeJuego();
+            }
         }
     }
 
